@@ -1,0 +1,275 @@
+@import "tailwindcss";
+
+/* ───────────────────────── KOR8 design tokens ───────────────────────── */
+@theme inline {
+  --color-accent: #f00001;
+  --color-ink: #000000;
+  --color-paper: #ffffff;
+
+  /* Display = Monk once licensed (swap in layout.tsx via next/font/local). */
+  --font-display: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body-face), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --grain: none;
+  /* set at runtime by <FilmGrain /> */
+  --hud-inset: 20px;
+}
+
+html {
+  background: #000;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* ───────────────────────── Film language ───────────────────────── */
+
+/* Grain overlay — tile shifted in 10 discrete steps per second (no JS per frame). */
+.grain-layer {
+  position: absolute;
+  inset: -50%;
+  background-image: var(--grain);
+  background-size: 192px 192px;
+  animation: grain-shift 1s steps(10) infinite;
+  will-change: transform;
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  10% {
+    transform: translate(-5%, -10%);
+  }
+
+  20% {
+    transform: translate(-15%, 5%);
+  }
+
+  30% {
+    transform: translate(7%, -25%);
+  }
+
+  40% {
+    transform: translate(-5%, 25%);
+  }
+
+  50% {
+    transform: translate(-15%, 10%);
+  }
+
+  60% {
+    transform: translate(15%, 0%);
+  }
+
+  70% {
+    transform: translate(0%, 15%);
+  }
+
+  80% {
+    transform: translate(3%, 35%);
+  }
+
+  90% {
+    transform: translate(-10%, 10%);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@layer components {
+
+  /* Giant tone-on-tone type with grain inside the letters. */
+  .giant-type {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(6rem, 24vw, 30rem);
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: transparent;
+    /* Near-black fill with ~10% grain showing through: tone-on-tone, never loud. */
+    background-image: linear-gradient(rgb(17 17 17 / 0.9), rgb(17 17 17 / 0.9)), var(--grain);
+    background-size: auto, 180px 180px;
+    -webkit-background-clip: text;
+    background-clip: text;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .giant-type--light {
+    background-image: linear-gradient(rgb(236 236 236 / 0.9), rgb(236 236 236 / 0.9)), var(--grain);
+  }
+
+  /* Indexed technical labels: 001 · A. · 01 / 04 · [ contact ] */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  .headline {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(3rem, 9vw, 10rem);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  /* Text-roll hover: two stacked copies slide up. */
+  .roll {
+    display: inline-flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .roll>span {
+    display: block;
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+
+  .roll>span+span {
+    position: absolute;
+    inset: 0;
+    transform: translateY(105%);
+  }
+
+  .roll:hover>span:first-child,
+  a:hover>.roll>span:first-child,
+  button:hover>.roll>span:first-child {
+    transform: translateY(-105%);
+  }
+
+  .roll:hover>span+span,
+  a:hover>.roll>span+span,
+  button:hover>.roll>span+span {
+    transform: translateY(0);
+  }
+
+  .accent-italic {
+    font-family: var(--font-serif-face), Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  /* SplitText line masks */
+  .split-mask {
+    overflow: clip;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+
+  /* Film-frame card with sprocket holes */
+  .film-frame {
+    position: relative;
+    background: #0a0a0a;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    padding: 22px 10px;
+  }
+
+  .film-frame::before,
+  .film-frame::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    height: 8px;
+    background-image: repeating-linear-gradient(90deg,
+        rgb(255 255 255 / 0.16) 0 10px,
+        transparent 10px 22px);
+    border-radius: 1px;
+  }
+
+  .film-frame::before {
+    top: 7px;
+  }
+
+  .film-frame::after {
+    bottom: 7px;
+  }
+
+  /* Thin hairline */
+  .hairline {
+    height: 1px;
+    background: rgb(255 255 255 / 0.12);
+  }
+
+  /* The one light section: pure white, still grained. */
+  .paper {
+    background-color: #fff;
+    background-image: var(--grain);
+    background-size: 192px 192px;
+    background-blend-mode: multiply;
+    color: #000;
+  }
+
+  .paper .label {
+    color: rgb(0 0 0 / 0.55);
+  }
+
+  .paper-grain-soft {
+    position: absolute;
+    inset: 0;
+    background: rgb(255 255 255 / 0.93);
+    pointer-events: none;
+  }
+}
+
+/* ───────────────────────── Reduced motion ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .grain-layer {
+    animation: none;
+  }
+}
