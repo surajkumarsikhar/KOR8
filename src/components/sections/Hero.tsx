@@ -5,7 +5,6 @@ import { gsap, useGSAP } from '@/lib/gsap';
 import { isLowEnd, onReady, prefersReducedMotion } from '@/lib/intro';
 import { hero } from '@/content/site';
 import AccentText from '@/components/ui/AccentText';
-import HeroLens from './HeroLens';
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
