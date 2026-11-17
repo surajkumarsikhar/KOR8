@@ -1,117 +1,218 @@
+
 'use client';
 
 import { useRef } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
-import { isLowEnd, onReady, prefersReducedMotion } from '@/lib/intro';
+import { onReady, prefersReducedMotion } from '@/lib/intro';
 import { hero } from '@/content/site';
 import AccentText from '@/components/ui/AccentText';
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
-  const lens = useRef<HTMLDivElement>(null);
+  const videoWrap = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const reduced = prefersReducedMotion();
-      const blur = !reduced && !isLowEnd();
-      const lines = gsap.utils.toArray<HTMLElement>('[data-hero-line]');
-      const fades = gsap.utils.toArray<HTMLElement>('[data-fade]');
 
-      gsap.set(lines, { yPercent: 105, opacity: 0, filter: blur ? 'blur(12px)' : 'none' });
-      gsap.set(fades, { opacity: 0, y: 16 });
-      gsap.set(lens.current, { opacity: 0, scale: 0.86 });
-      gsap.set('[data-giant]', { opacity: 0 });
+      const lines = gsap.utils.toArray<HTMLElement>(
+        '[data-hero-line]',
+      );
 
-      // Built now (inside the scope), played when the preloader wipes away.
-      const intro = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+      const fades = gsap.utils.toArray<HTMLElement>(
+        '[data-fade]',
+      );
+
+      gsap.set(lines, {
+        yPercent: 110,
+        opacity: 0,
+      });
+
+      gsap.set(fades, {
+        opacity: 0,
+        y: 20,
+      });
+
+      gsap.set(videoWrap.current, {
+        opacity: 0,
+        scale: 0.94,
+        x: 30,
+      });
+
+      // Intro animation
+      const intro = gsap.timeline({
+        paused: true,
+        defaults: { ease: 'power3.out' },
+      });
+
       intro
-        .to('[data-giant]', { opacity: 1, duration: 2.4, ease: 'power2.out' }, 0)
-        .to(lens.current, { opacity: 1, scale: 1, duration: 2, ease: 'expo.out' }, 0.1)
-        // Rack focus: each line rises out of its mask while the blur clears.
+        .to(videoWrap.current, {
+          opacity: 1,
+          scale: 1,
+          x: 0,
+          duration: 1.8,
+          ease: 'expo.out',
+        }, 0)
         .to(lines, {
           yPercent: 0,
           opacity: 1,
-          filter: 'blur(0px)',
-          duration: reduced ? 0.6 : 1.4,
+          duration: reduced ? 0.5 : 1.2,
           stagger: 0.12,
-          clearProps: 'filter,willChange',
-        }, 0.35)
-        .to(fades, { opacity: 1, y: 0, duration: 1.2, stagger: 0.08 }, 0.9);
+        }, 0.25)
+        .to(fades, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          stagger: 0.12,
+        }, 0.8);
 
       const off = onReady(() => intro.play());
 
       if (reduced) return off;
 
-      // Lens: slow idle rotation of the knurled barrel, tilt toward the cursor.
-      gsap.to('[data-knurl], [data-scale]', { rotation: 360, duration: 90, ease: 'none', repeat: -1 });
-      const rx = gsap.quickTo(lens.current, 'rotationX', { duration: 1.2, ease: 'power3.out' });
-      const ry = gsap.quickTo(lens.current, 'rotationY', { duration: 1.2, ease: 'power3.out' });
-      const gx = gsap.quickTo('[data-giant]', 'x', { duration: 1.6, ease: 'power3.out' });
-      const move = (e: PointerEvent) => {
-        const nx = e.clientX / window.innerWidth - 0.5;
-        const ny = e.clientY / window.innerHeight - 0.5;
-        ry(nx * 22);
-        rx(-ny * 22);
-        gx(nx * -40);
-      };
-      window.addEventListener('pointermove', move, { passive: true });
-
-      // Scroll-out: object scales down and fades, giant type drifts slower.
-      const out = gsap.timeline({
-        scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true },
+      // Scroll animation
+      const scroll = gsap.timeline({
+        scrollTrigger: {
+          trigger: root.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1,
+        },
       });
-      out.to('[data-lens-wrap]', { scale: 0.6, opacity: 0, yPercent: -10, ease: 'none' }, 0)
-        .to('[data-giant]', { yPercent: 30, ease: 'none' }, 0)
-        .to('[data-copy]', { yPercent: -40, opacity: 0, ease: 'none' }, 0);
+
+      scroll
+        .to(videoWrap.current, {
+          scale: 0.85,
+          yPercent: -12,
+          opacity: 0.25,
+          ease: 'none',
+        }, 0)
+        .to('[data-copy]', {
+          y: -70,
+          opacity: 0,
+          ease: 'none',
+        }, 0);
 
       return () => {
         off();
-        window.removeEventListener('pointermove', move);
       };
     },
     { scope: root },
   );
 
   return (
-    <section ref={root} id="top" className="relative flex h-svh min-h-[640px] items-center justify-center overflow-hidden">
-      {/* Giant tone-on-tone type behind the object */}
-      <div data-giant className="giant-type absolute inset-x-0 top-1/2 -translate-y-1/2 text-center" aria-hidden="true">
-        KOR8
-      </div>
+    <section
+      ref={root}
+      id="top"
+      className="relative isolate flex h-svh min-h-[640px] items-center overflow-hidden bg-[#050505]"
+    >
+      {/* Crimson light leak from left */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[65%]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 0% 48%, rgba(160, 0, 15, 0.25) 0%, rgba(110, 0, 10, 0.12) 28%, transparent 72%)',
+        }}
+      />
 
-      <div data-lens-wrap className="absolute inset-0 flex items-center justify-center [perspective:1200px]">
-        <HeroLens ref={lens} />
-      </div>
+      {/* Subtle secondary light */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-1/2 z-0 h-[500px] w-[400px] -translate-y-1/2 rounded-full bg-red-900/10 blur-[130px]"
+      />
 
-      <div data-copy className="relative z-10 px-5 text-center">
-        <h1 className="headline text-[clamp(3rem,8.4vw,10rem)]">
-          {hero.headline.map((line) => (
-            <span key={line} className="split-mask block">
-              <span data-hero-line className="block will-change-[transform,filter]">
-                <AccentText text={line} />
+      {/* Main hero content */}
+      <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-8 px-6 py-24 md:grid-cols-[0.9fr_1.1fr] md:gap-4 md:px-12 lg:px-20">
+
+        {/* LEFT: Typography */}
+        <div
+          data-copy
+          className="relative z-20 flex flex-col items-start"
+        >
+          <p
+            data-fade
+            className="label mb-8 text-white/45"
+          >
+            INDEPENDENT CREATIVE PRODUCTION HOUSE
+          </p>
+
+          <h1 className="headline max-w-[750px] text-left text-[clamp(3.5rem,7vw,7.5rem)] leading-[0.95]">
+            {hero.headline.map((line) => (
+              <span
+                key={line}
+                className="split-mask block overflow-hidden"
+              >
+                <span
+                  data-hero-line
+                  className="block will-change-transform"
+                >
+                  <span data-hero-line className="block will-change-transform">
+                    <em className="accent-italic">
+                      {line.replace(/\*/g, '')}
+                    </em>
+                  </span>
+                </span>
               </span>
+            ))}
+          </h1>
+
+          <p
+            data-fade
+            className="mt-8 max-w-[360px] text-sm leading-relaxed text-white/55 md:text-base"
+          >
+            {hero.left}
+          </p>
+
+          <a
+            data-fade
+            href="#work"
+            className="group mt-10 inline-flex items-center gap-4 text-sm text-white"
+          >
+            <span className="border-b border-white/40 pb-2 transition-colors group-hover:border-red-500">
+              Explore our work
             </span>
-          ))}
-        </h1>
+
+            <span className="text-red-500 transition-transform group-hover:translate-x-2">
+              ↗
+            </span>
+          </a>
+        </div>
+
+        {/* RIGHT: Cinematic model video */}
+        <div
+          ref={videoWrap}
+          className="relative flex h-[48vh] min-h-[320px] items-center justify-center md:h-[75vh] md:min-h-[500px]"
+        >
+          <video
+            className="h-full w-full object-contain"
+            src="/videos/kor8-model.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label="Cinematic KOR8 model portrait"
+            style={{
+              maskImage:
+                'linear-gradient(to right, transparent 0%, black 16%, black 100%)',
+              WebkitMaskImage:
+                'linear-gradient(to right, transparent 0%, black 16%, black 100%)',
+            }}
+          />
+        </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-20 z-10 mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:bottom-24 md:px-10">
-        <p data-fade className="max-w-[16rem] text-sm text-white/70 md:text-base">
-          <span className="label mb-3 block">001 / what</span>
-          {hero.left}
-        </p>
-        <a data-fade href="#statement" className="label hidden flex-col items-center gap-3 text-white md:flex">
-          Scroll
-          <span className="block h-10 w-px origin-top animate-[cue_2.2s_ease-in-out_infinite] bg-white/60" />
-        </a>
-        <p data-fade className="max-w-[16rem] text-right text-sm text-white/70 md:text-base">
-          <span className="label mb-3 block">002 / where</span>
-          {hero.right}
-        </p>
+      {/* Minimal scroll indicator */}
+      <div
+        data-fade
+        className="absolute bottom-8 left-6 z-20 flex items-center gap-3 md:left-12"
+      >
+        <span className="h-px w-10 bg-red-600" />
+        <span className="label text-white/40">
+          SCROLL TO EXPLORE
+        </span>
       </div>
-
-      <style>{`@keyframes cue { 0% { transform: scaleY(0) } 50% { transform: scaleY(1) } 100% { transform: scaleY(1); opacity: 0 } }`}</style>
     </section>
   );
 }
-
