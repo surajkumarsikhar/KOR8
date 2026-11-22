@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
@@ -39,7 +39,7 @@ export default function TimecodeRail() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden h-9 overflow-hidden opacity-40 mix-blend-difference md:block"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden h-9 overflow-hidden opacity-10 mix-blend-difference md:block"
     >
       <div ref={track} className="flex h-full w-max items-end pb-2">
         {Array.from({ length: MAJORS }, (_, i) => (
@@ -58,3 +58,4 @@ export default function TimecodeRail() {
     </div>
   );
 }
+

@@ -13,10 +13,10 @@ export const site = {
 };
 
 export const nav = [
-  { label: 'Work', href: '#work' },
-  { label: 'Services', href: '#services' },
-  { label: 'Process', href: '#process' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Work', href: '/#universe' },
+  { label: 'Services', href: '/studio#services' },
+  { label: 'Process', href: '/studio#process' },
+  { label: 'Contact', href: '/studio#contact' },
 ];
 
 export const hero = {

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef } from 'react';
 import { formatTimecode } from '@/lib/utils';
@@ -34,11 +34,11 @@ export default function ViewfinderHUD() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-50 text-white">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-50 text-white opacity-40">
       {/* REC + timecode — bottom-left, above the rail */}
-      <div className="absolute bottom-5 left-5 flex items-center gap-3 font-mono text-[11px] tracking-[0.14em] md:bottom-14 md:left-8">
+      <div className="absolute bottom-5 left-5 flex items-center gap-3 font-mono text-[9px] tracking-[0.14em] md:bottom-14 md:left-8">
         <span className="flex items-center gap-2 text-accent">
-          <span className="h-2 w-2 animate-[rec_1.6s_steps(1)_infinite] rounded-full bg-accent" />
+          <span className="h-1 w-1 rounded-full bg-accent" />
           REC
         </span>
         <span ref={tc} className="hidden text-white opacity-60 mix-blend-difference md:inline">
@@ -47,7 +47,7 @@ export default function ViewfinderHUD() {
       </div>
 
       {/* Corner brackets */}
-      <div className="hidden opacity-40 mix-blend-difference md:block">
+      <div className="hidden opacity-25 mix-blend-difference md:block">
         {(['tl', 'tr', 'bl', 'br'] as const).map((c) => (
           <span
             key={c}
@@ -70,3 +70,4 @@ export default function ViewfinderHUD() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -31,6 +31,8 @@ export type GimbalControls = {
     follow: boolean;
     /** 0..1 flash burst at the lens. */
     flash: number;
+    /** Opening light travels across the front element from 0 to 1. */
+    sweep?: number;
 };
 
 type Props = {
@@ -125,13 +127,13 @@ export default function GimbalCamera({
             m.lookAt(0, 0, 0);
             studio.add(m);
         };
-        panel(6, 3.5, [8, 8, 8], [-4, 4, 7]); // softbox
-        panel(1.4, 7, [4, 6, 10], [7, 1, 3]); // cool strip
-        panel(1.4, 7, [10, 6, 3], [-7, 0, 2]); // warm strip
-        panel(8, 1, [3, 3, 3.5], [0, -4, 6]); // floor card
+        panel(6, 3.5, [0.7, 0.7, 0.7], [-4, 4, 7]); // softbox
+        panel(1.4, 7, [0.3, 0.4, 0.6], [7, 1, 3]); // cool strip
+        panel(1.4, 7, [1.5, 0.08, 0.18], [-7, 0, 2]); // warm strip
+        panel(8, 1, [0.15, 0.15, 0.2], [0, -4, 6]); // floor card
         const ringLight = new THREE.Mesh(
             new THREE.TorusGeometry(2.6, 0.22, 16, 96),
-            new THREE.MeshBasicMaterial({ color: new THREE.Color(12, 12, 12) }),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 0.8, 0.8) }),
         );
         ringLight.position.set(0, 0.3, 8);
         studio.add(ringLight);
@@ -155,7 +157,7 @@ export default function GimbalCamera({
         key.shadow.camera.far = 20;
         key.shadow.bias = -0.0004;
         key.shadow.normalBias = 0.02;
-        const rim = new THREE.DirectionalLight(0x8fb4ff, 2.2);
+        const rim = new THREE.DirectionalLight(0xb50916, 1.5);
         rim.position.set(-4, 3, -3);
         const fill = new THREE.DirectionalLight(0xffe2c8, 0.5);
         fill.position.set(-3, 1, 5);
@@ -367,7 +369,7 @@ export default function GimbalCamera({
             c.fillStyle = '#7b8494';
             c.fillText('FOLLOW', 10, 8);
             if (recOn) {
-                c.fillStyle = '#ff4a2b';
+                c.fillStyle = '#e01835';
                 c.beginPath();
                 c.arc(172, 15, 6, 0, TAU);
                 c.fill();
@@ -524,17 +526,17 @@ export default function GimbalCamera({
         // envMapIntensity is ignored on materials that use scene.environment.
         const mirror = mat(
             new THREE.MeshStandardMaterial({
-                color: 0xf4f7ff,
+                color: 0x20202b,
                 metalness: 1,
                 roughness: 0.015,
                 envMap: studioEnv,
-                envMapIntensity: 1.7,
+                envMapIntensity: 0.7,
             }),
         );
         const ledRed = mat(
             new THREE.MeshStandardMaterial({
                 color: 0x330000,
-                emissive: 0xff2a1a,
+                emissive: 0xe01835,
                 emissiveIntensity: 2,
             }),
         );
@@ -854,6 +856,14 @@ export default function GimbalCamera({
         const flashLight = new THREE.PointLight(0xffffff, 0, 14, 1.2);
         flashLight.position.set(0, 0, 1.6);
         rig.add(flashLight);
+        const sweepLight = new THREE.PointLight(0xe01835, 0, 3, 2);
+        sweepLight.position.set(-0.45, 0.05, 1.12);
+        rig.add(sweepLight);
+        // A slim reflected strip lies just above the curved lens surface.
+        const sweepMaterial = track(new THREE.MeshBasicMaterial({
+            color: 0xe01835, transparent: true, opacity: 0, depthWrite: false,
+        }));
+        const sweepStrip = add(new THREE.PlaneGeometry(0.007, 0.19), sweepMaterial, rig, [-0.12, 0, 0.968]);
 
         // Tulip hood
         const hoodGeo = new THREE.CylinderGeometry(0.3, 0.235, 0.22, 96, 1, true);
@@ -907,7 +917,7 @@ export default function GimbalCamera({
         /* ---------- Shots ---------- */
         const AIM_BIAS = 0.2; // rest heading turns the lens slightly toward the viewer
         const wideTarget = new THREE.Vector3(0, 1.5, 0);
-        const wideDir = new THREE.Vector3(1.8, 0.55, 6.4);
+        const wideDir = new THREE.Vector3(1.65, 0.5, 5.9);
         const MACRO_DIST = 0.85;
         const lensP = new THREE.Vector3();
         const lensF = new THREE.Vector3();
@@ -976,6 +986,12 @@ export default function GimbalCamera({
             const recOn = Math.sin(t * 3) > 0;
             ledRed.emissiveIntensity = recOn ? 2.5 : 0.15;
             flashLight.intensity = flash * 70;
+            const sweep = c?.sweep ?? 0;
+            const sweepStrength = Math.sin(sweep * Math.PI);
+            sweepLight.position.x = -0.45 + sweep * 0.9;
+            sweepLight.intensity = sweepStrength * 2;
+            sweepStrip.position.x = -0.12 + sweep * 0.24;
+            sweepMaterial.opacity = sweepStrength * 0.8;
             renderer.toneMappingExposure = 1.05 + flash * 1.8;
 
             // 5) Live displays (10 Hz)
@@ -1052,3 +1068,7 @@ export default function GimbalCamera({
         />
     );
 }
+
+
+
+

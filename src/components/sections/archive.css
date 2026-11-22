@@ -1,0 +1,54 @@
+.infinite-archive {
+  --archive-col: max(100px, calc(100vw / 6));
+  --archive-row: max(120px, calc(100dvh / 4));
+  position: fixed; inset: 0; z-index: 30; overflow: clip;
+  touch-action: none; overscroll-behavior: none; background: #100509;
+}
+.archive-wall { position: absolute; left: -12px; top: -12px; width: calc(var(--archive-col) * 6); height: calc(var(--archive-row) * 4); will-change: transform; }
+.archive-repeat { position: absolute; width: 100%; height: 100%; }
+.archive-tile { position: absolute; display: block; padding: 0; border: 0; margin: 0; overflow: hidden; cursor: grab; background: #100509; }
+.archive-tile:active { cursor: grabbing; }
+.archive-tile img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; pointer-events: none; filter: saturate(.08) brightness(.7) contrast(1.08); transition: filter .55s ease; }
+@media (hover:hover) {
+  .archive-wall:has(.archive-tile:hover) .archive-tile img { filter: saturate(.04) brightness(.48) contrast(1.08); }
+  .archive-wall .archive-tile:hover img { filter: saturate(1) brightness(1.06) contrast(1.1); }
+}
+.archive-wall:has(.archive-tile:focus-visible) .archive-tile img { filter: saturate(.04) brightness(.48); }
+.archive-wall .archive-tile:focus-visible img { filter: saturate(1) brightness(1.06) contrast(1.1); }
+.archive-tile:focus-visible { outline: 2px solid #f2f0ec; outline-offset: -4px; z-index: 2; }
+.archive-atmosphere { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 15% 85%, #850c2026, transparent 65%); }
+.archive-heading { position: absolute; top: 110px; left: 5vw; pointer-events: none; text-shadow: 0 1px 15px #000; }
+.archive-heading p, .archive-controls, .archive-project-copy p, .archive-close { font-family: var(--font-mono-face), monospace; font-size: 12px; letter-spacing: .08em; }
+.archive-heading p { color: #f2f0ecb3; text-transform: uppercase; }
+.archive-heading h1, .archive-heading h2 { font-size: clamp(24px,3vw,44px); font-weight: 500; letter-spacing: -.04em; }
+.archive-controls { position: absolute; bottom: 28px; left: 5vw; right: 5vw; display: flex; justify-content: space-between; gap: 20px; align-items: center; pointer-events: none; text-shadow: 0 1px 8px #000; }
+.archive-controls a, .archive-controls button { pointer-events: auto; padding: 12px 0; text-decoration: underline; text-underline-offset: 5px; cursor:pointer; }
+.archive-entry { display: block; width: fit-content; margin-top: 12px; text-decoration: underline; text-underline-offset: 5px; pointer-events: auto; }
+.archive-dialog { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; background: transparent; color: #f2f0ec; overflow: hidden; perspective: 1800px; touch-action: auto; }
+.archive-dialog::backdrop { background: #050505a6; }
+.archive-close { position: absolute; right: 5vw; top: 24px; z-index: 3; min-height: 44px; padding: 10px; background: #080608d9; cursor: pointer; }
+.archive-presentation { position: absolute; inset: 10% 12%; transform-origin: 0 0; perspective: 1800px; }
+.archive-flip { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
+.archive-face { position: absolute; inset: 0; backface-visibility: hidden; overflow: hidden; background: #080608; }
+.archive-face img, .archive-face video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.archive-back { transform: rotateY(180deg); }
+.archive-back img, .archive-back video { object-fit: contain; height: calc(100% - 100px); }
+.archive-project-copy { position: absolute; bottom: 0; left: 0; right: 0; height: 100px; padding: 16px 24px; }
+.archive-project-copy p { color: #b9afb2; }
+.archive-project-copy h2 { font-size: clamp(22px,3vw,36px); letter-spacing: -.03em; }
+body:has(.infinite-archive:not(.archive-embedded)) [data-film-hud] { display: none; }
+.archive-scene { background:transparent; }
+.archive-handoff { position:absolute; inset:0; clip-path:inset(0%); }
+.archive-embedded { position:absolute; z-index:0; touch-action:pan-y; }
+.archive-embedded[data-exploring] { touch-action:none; }
+.archive-embedded .archive-controls { flex-wrap:wrap; gap:8px 24px; }
+.archive-embedded .archive-controls span { margin-left:auto; }
+@media(max-width:767px) {
+  .archive-heading { top: 92px; }
+  .archive-heading p { font-size: 10px; }
+  .archive-controls { bottom: 20px; align-items: flex-end; font-size: 11px; }
+  .archive-controls span { max-width: 145px; text-align: right; }
+  .archive-presentation { inset: 12% 4%; }
+  .archive-project-copy { padding: 16px; }
+}
+@media(prefers-reduced-motion:reduce) { .archive-tile img { transition: none; } }

@@ -35,11 +35,12 @@ export default function FilmGrain({ opacity = 0.05 }: FilmGrainProps) {
 
   return (
     <div
+      data-global-grain
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[60] overflow-hidden mix-blend-overlay"
-      style={{ opacity: opacity * 2.5 }}
+      className="pointer-events-none fixed inset-0 z-[45] overflow-hidden mix-blend-soft-light"
     >
-      <div className="grain-layer" />
+      <div className="site-grain-texture site-grain-background" />
+      <div className="site-grain-texture" style={{ opacity }} />
     </div>
   );
 }

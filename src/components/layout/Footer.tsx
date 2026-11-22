@@ -28,7 +28,6 @@ export default function Footer() {
         <div>
           <p className="label mb-5">[ contact ]</p>
           <a href={`mailto:${site.email}`} className="block text-lg hover:text-accent">{site.email}</a>
-          <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="mt-1 block text-white/60 hover:text-white">{site.phone}</a>
         </div>
         <div>
           <p className="label mb-5">[ menu ]</p>

@@ -1,10 +1,12 @@
-import type { Metadata, Viewport } from 'next';
+﻿import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Inter_Tight, Newsreader } from 'next/font/google';
 import './globals.css';
 import SmoothScroll from '@/components/layout/SmoothScroll';
-import FilmGrain from '@/components/ui/FilmGrain';
-import ViewfinderHUD from '@/components/ui/ViewfinderHUD';
 import TimecodeRail from '@/components/ui/TimecodeRail';
+import FilmGrain from '@/components/ui/FilmGrain';
+import SiteGateWeave from '@/components/ui/SiteGateWeave';
+import ViewfinderHUD from '@/components/ui/ViewfinderHUD';
+
 import CursorPill from '@/components/ui/CursorPill';
 import Preloader from '@/components/layout/Preloader';
 import Navigation from '@/components/layout/Navigation';
@@ -27,7 +29,7 @@ const geistMono = Geist_Mono({
 const display = Inter_Tight({
   variable: '--font-display-face',
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '900'],
   display: 'swap',
 });
 
@@ -106,7 +108,7 @@ const jsonLd = {
       name: site.name,
       url: site.url,
       email: site.email,
-      telephone: site.phone,
+
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Bhubaneswar',
@@ -135,11 +137,12 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-black text-white selection:bg-[#F00001] selection:text-white">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <SmoothScroll />
         <Preloader />
-        <FilmGrain opacity={0.05} />
-        <ViewfinderHUD />
-        <TimecodeRail />
+        <FilmGrain opacity={0.3} /><SiteGateWeave />
+        <ViewfinderHUD /><TimecodeRail /><span data-film-hud aria-hidden="true" className="pointer-events-none fixed bottom-10 right-8 z-40 font-mono text-[8px] tracking-widest text-white/50">INFINITE</span>
+
         <CursorPill />
         <Navigation />
         <main id="main-content" tabIndex={-1}>
@@ -149,3 +152,4 @@ export default function RootLayout({
     </html>
   );
 }
+

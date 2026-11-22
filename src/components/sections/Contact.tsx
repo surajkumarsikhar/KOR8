@@ -187,7 +187,7 @@ export default function Contact() {
               </MagneticButton>
               <p className="label" role="status" aria-live="polite">
                 {status === 'sent' && 'Thanks. We reply within one working day.'}
-                {status === 'error' && <span className="text-accent">Something broke. Email us instead.</span>}
+                {status === 'error' && <span className="text-accent">Your enquiry wasn&apos;t sent. <a className="underline" href={`mailto:${site.email}`}>Email us instead.</a></span>}
               </p>
             </div>
           </form>

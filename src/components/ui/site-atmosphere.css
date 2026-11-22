@@ -1,0 +1,20 @@
+:root { --site-weave-x: 0px; --site-weave-y: 0px; --site-weave-r: 0deg; --site-weave-strength: 5; }
+.site-grain-texture { position:absolute; inset:-24px; background:var(--grain) repeat; background-size:192px 192px;
+  translate:calc(var(--site-weave-x) * var(--site-weave-strength)) calc(var(--site-weave-y) * var(--site-weave-strength));
+  rotate:calc(var(--site-weave-r) * var(--site-weave-strength)); }
+.site-grain-background { opacity:.1; }
+.film-scene:not(.hero-scene) h2, [data-studio-weave] h2, .archive-heading {
+  translate:calc(var(--site-weave-x) * var(--site-weave-strength) * .35) calc(var(--site-weave-y) * var(--site-weave-strength) * .35);
+  rotate:calc(var(--site-weave-r) * var(--site-weave-strength) * .35);
+}
+.film-scene:not(.hero-scene) .frame-image, [data-studio-weave] .giant-type {
+  translate:calc(var(--site-weave-x) * var(--site-weave-strength) * .28) calc(var(--site-weave-y) * var(--site-weave-strength) * .28);
+  rotate:calc(var(--site-weave-r) * var(--site-weave-strength) * .28);
+}
+/* Move the packed plane, never individual tiles; overscan keeps edges filled. */
+.archive-wall { translate:calc(var(--site-weave-x) * var(--site-weave-strength) * .28) calc(var(--site-weave-y) * var(--site-weave-strength) * .28); }
+.archive-dialog::after { content:''; position:absolute; inset:0; pointer-events:none; background:var(--grain) repeat; opacity:.1; mix-blend-mode:soft-light; }
+@media(prefers-reduced-motion:reduce), (pointer:coarse) {
+  .site-grain-texture, .film-scene:not(.hero-scene) h2, [data-studio-weave] h2, .archive-heading,
+  .film-scene:not(.hero-scene) .frame-image, [data-studio-weave] .giant-type, .archive-wall { translate:none; rotate:none; }
+}

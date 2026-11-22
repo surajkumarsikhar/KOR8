@@ -1,115 +1,101 @@
-'use client';
+﻿'use client';
 
-import { useRef, useState } from 'react';
-import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
-import { nav } from '@/content/site';
-import { cn } from '@/lib/utils';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { gsap, useGSAP } from '@/lib/gsap';
+import { getLenis } from './SmoothScroll';
 import Wordmark from '@/components/ui/Wordmark';
-import MagneticButton from '@/components/ui/MagneticButton';
+import { COLLAB_HERO, THROUGH_FRAME, UNIVERSE_FRAMES } from '@/content/cinematic';
+
+const stills = [UNIVERSE_FRAMES[1], UNIVERSE_FRAMES[2], COLLAB_HERO, THROUGH_FRAME, UNIVERSE_FRAMES[1]];
+
+const ITEMS = [
+  { label: 'WORK', href: '/#universe' },
+  { label: 'SERVICES', href: '/studio#services' },
+  { label: 'PROCESS', href: '/studio#process' },
+  { label: 'ABOUT', href: '/#vision' },
+  { label: 'CONTACT', href: '/#contact' },
+];
 
 export default function Navigation() {
-  const bar = useRef<HTMLElement>(null);
-  const overlay = useRef<HTMLDivElement>(null);
-  const [glass, setGlass] = useState(false);
+  const pathname = usePathname();
+  const root = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const close = useRef<HTMLButtonElement>(null);
+  const timeline = useRef<gsap.core.Timeline | null>(null);
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const localHref = (href: string) => href.startsWith(pathname + '#') ? href.slice(pathname.length) : href;
 
-  // Hide on scroll down, reveal on scroll up; glass panel after the hero.
   useGSAP(() => {
-    const st = ScrollTrigger.create({
-      start: 0,
-      end: 'max',
-      onUpdate: (self) => {
-        const y = self.scroll();
-        setGlass(y > window.innerHeight * 0.85);
-        const hide = self.direction === 1 && y > 120;
-        gsap.to(bar.current, { yPercent: hide ? -110 : 0, duration: 0.5, ease: 'power3.out', overwrite: true });
-      },
-    });
-    return () => st.kill();
-  });
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    timeline.current = gsap.timeline({ paused: true })
+      .set(dialog.current, { visibility: 'visible' })
+      .fromTo(dialog.current, { clipPath: 'inset(49.8% 0 49.8% 0)' }, { clipPath: 'inset(0% 0 0% 0)', duration: reduce ? 0 : 0.65, ease: 'power3.inOut' })
+      .fromTo('[data-menu-screen]', { clipPath: 'inset(48% 0)', scale: 1.08 }, { clipPath: 'inset(0% 0)', scale: 1, duration: reduce ? 0 : 0.85 }, reduce ? 0 : 0.18)
+      .fromTo('[data-menu-line]', { yPercent: 110 }, { yPercent: 0, stagger: reduce ? 0 : 0.065, duration: reduce ? 0 : 0.7 }, reduce ? 0 : 0.2)
+      .fromTo('[data-menu-light]', { opacity: 0 }, { opacity: 1, duration: reduce ? 0 : 0.8 }, 0)
+      .fromTo('[data-menu-detail]', { opacity: 0 }, { opacity: 1, duration: reduce ? 0 : 0.4 }, reduce ? 0 : 0.65);
+    return () => { timeline.current = null; };
+  }, { scope: root });
 
-  // Mobile overlay: staggered line reveals.
-  useGSAP(
-    () => {
-      if (!overlay.current) return;
-      const lines = overlay.current.querySelectorAll('[data-menu-line]');
-      if (open) {
-        gsap.set(overlay.current, { autoAlpha: 1 });
-        gsap.fromTo(lines, { yPercent: 110 }, { yPercent: 0, duration: 0.8, stagger: 0.07, ease: 'power3.out' });
-      } else {
-        gsap.to(overlay.current, { autoAlpha: 0, duration: 0.3 });
-      }
-    },
-    { dependencies: [open] },
-  );
+  useEffect(() => {
+    const el = dialog.current!;
+    el.inert = !open;
+    if (!open) {
+      if (!timeline.current?.duration()) el.style.visibility = 'hidden';
+      timeline.current?.eventCallback('onReverseComplete', () => { el.style.visibility = 'hidden'; }).reverse();
+      return;
+    }
+    el.style.visibility = 'visible';
+    timeline.current?.play();
+    const html = document.documentElement;
+    const previousOverflow = html.style.overflow;
+    html.style.overflow = 'hidden';
+    getLenis()?.stop();
+    const main = document.getElementById('main-content');
+    if (main) main.inert = true;
+    close.current?.focus({ preventScroll: true });
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(el.querySelectorAll<HTMLElement>('a[href], button'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      document.removeEventListener('keydown', keydown);
+      html.style.overflow = previousOverflow;
+      if (main) main.inert = false;
+      getLenis()?.start();
+      toggle.current?.focus({ preventScroll: true });
+    };
+  }, [open]);
 
-  return (
-    <>
-      <header
-        ref={bar}
-        className={cn(
-          'fixed inset-x-0 top-0 z-[55] transition-[background-color,backdrop-filter,border-color] duration-500',
-          glass ? 'border-b border-white/10 bg-black/55 backdrop-blur-xl' : 'border-b border-transparent',
-        )}
-      >
-        <nav aria-label="Primary" className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 md:h-20 md:px-10">
-          <a href="#top" className="text-2xl md:text-[28px]" aria-label="KOR8, back to top">
-            <Wordmark />
-          </a>
-
-          <ul className="hidden items-center gap-10 md:flex">
-            {nav.map((l) => (
-              <li key={l.href}>
-                <a href={l.href} className="group relative text-sm text-white/70 transition-colors hover:text-white">
-                  <span className="roll">
-                    <span>{l.label}</span>
-                    <span aria-hidden="true">{l.label}</span>
-                  </span>
-                  <span className="absolute -bottom-1 left-0 h-px w-full origin-right scale-x-0 bg-accent transition-transform duration-500 ease-out-expo group-hover:origin-left group-hover:scale-x-100" />
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <div className="hidden md:block">
-            <MagneticButton href="#contact" cursor="Let's talk">
-              <span className="roll">
-                <span>Start a project</span>
-                <span aria-hidden="true">Start a project</span>
-              </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-            </MagneticButton>
-          </div>
-
-          <button
-            type="button"
-            className="label relative z-10 text-white md:hidden"
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? '[ close ]' : '[ menu ]'}
-          </button>
-        </nav>
-      </header>
-
-      <div
-        id="mobile-menu"
-        ref={overlay}
-        className="invisible fixed inset-0 z-[54] flex flex-col justify-end bg-black px-5 pb-24 opacity-0 md:hidden"
-      >
-        <ul className="space-y-2">
-          {[...nav, { label: 'Start a project', href: '#contact' }].map((l, i) => (
-            <li key={l.href + i} className="overflow-hidden">
-              <a data-menu-line href={l.href} onClick={() => setOpen(false)} className="headline block text-[15vw]">
-                <span className="label mr-3 align-top">{String(i + 1).padStart(2, '0')}</span>
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+  return <div ref={root}>
+    <header className="cinema-nav">
+      <a href={pathname === '/' ? '#top' : '/'} aria-label="KOR8, home"><Wordmark /></a>
+      <span className="nav-caption">INDEPENDENT CREATIVE PRODUCTION</span>
+      <div className="nav-actions"><a href="/studio#contact" className="nav-project">START A PROJECT ↗</a><button ref={toggle} type="button" aria-expanded={open} aria-controls="cinema-menu" onClick={() => setOpen(true)}>MENU <span aria-hidden="true">＋</span></button></div>
+    </header>
+    <div ref={dialog} id="cinema-menu" role="dialog" aria-modal="true" aria-label="Navigation" aria-hidden={!open} className="cinema-menu">
+      <div data-menu-light className="menu-light" />
+      <div className="menu-top"><a href="/" onClick={() => setOpen(false)} aria-label="KOR8, home"><Wordmark /></a><button ref={close} type="button" onClick={() => setOpen(false)}>CLOSE <span aria-hidden="true">×</span></button></div>
+      <div data-menu-screen className="menu-screen" aria-hidden="true">
+        {stills.map((asset, i) => <div key={ITEMS[i].label} className="menu-still" data-active={active === i}
+          style={{ backgroundImage: asset.src ? `url(${asset.src})` : asset.tone }} />)}
       </div>
-    </>
-  );
+      <nav aria-label="Main navigation"><ul>{ITEMS.map((item, i) => <li key={item.label}>
+        <a data-menu-line data-current={active === i} onPointerEnter={() => setActive(i)} onFocus={() => setActive(i)}
+          href={localHref(item.href)} onClick={() => { getLenis()?.start(); setOpen(false); }}>
+          <span>0{i + 1}</span>{item.label}
+        </a>
+      </li>)}</ul></nav>
+      <div data-menu-detail className="menu-bottom"><p>BHUBANESWAR, INDIA<br />CREATIVITY WITHOUT BOUNDARIES.</p><a href="/studio#contact" onClick={() => setOpen(false)} className="project-link">START A PROJECT ↗</a></div>
+    </div>
+  </div>;
 }
-
