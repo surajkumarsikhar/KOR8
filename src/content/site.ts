@@ -6,8 +6,8 @@
 export const site = {
   name: 'KOR8',
   url: 'https://kor8.in',
-  email: 'hello@kor8.in',
-  phone: '+91 00000 00000', // TODO: real number
+  email: 'business@kor8.in',
+  phone: '+91 72051 96567', // TODO: real number
   instagram: 'https://www.instagram.com/kor8.in', // TODO: confirm handle
   city: 'Bhubaneswar, Odisha',
 };

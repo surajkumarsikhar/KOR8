@@ -5,6 +5,7 @@ import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { onReady } from '@/lib/intro';
 import { scrollToAnchor } from '@/components/layout/SmoothScroll';
 import Hero from './Hero';
+import SharedBrandMark from '@/components/ui/SharedBrandMark';
 import ArchiveScene from './ArchiveScene';
 import VisionAndThroughTheFrame from './VisionAndThroughTheFrame';
 import CollaborationAndWhiteTransition from './CollaborationAndWhiteTransition';
@@ -37,6 +38,13 @@ export default function CinematicExperience() {
       gsap.set([scene('universe'), scene('vision'), scene('collaboration'), scene('beyond'), scene('closing')].flat(), { autoAlpha: 0 });
       const hero = scene('hero')[0] as HTMLElement;
       const fullBoundary = () => `${hero.clientHeight + hero.clientWidth * Math.tan(Math.PI / 18) + 2}px`;
+      const source = q('[data-brand-source]')[0] as HTMLElement;
+      const destination = q('[data-brand-destination]')[0] as HTMLElement;
+      const brandTarget = () => {
+        const a = source.getBoundingClientRect(), b = destination.getBoundingClientRect();
+        return { x: b.left - a.left, y: b.top - a.top, scale: b.width / a.width };
+      };
+      gsap.set(q('[data-shared-brand]'), { transformOrigin: '0 0' });
       gsap.set(scene('beyond'), { clipPath: 'polygon(0 100%, 100% 100%, 100% 100%, 0 100%)' });
       gsap.set(scene('closing'), { clipPath: 'inset(38% 33% 28% 35%)' });
       gsap.set(q('[data-travel-frame]'), { y: () => innerHeight * 1.3, xPercent: mobile ? -4 : -12, rotation: -5, scale: 0.9 });
@@ -56,13 +64,15 @@ export default function CinematicExperience() {
         .to(q('[data-edge]'), { autoAlpha: 0.65, duration: 0.7 }, 0.65)
         .set(scene('universe'), { autoAlpha: 1 }, 0.95)
         .fromTo(hero, { '--hero-wipe-y': fullBoundary }, { '--hero-wipe-y': '-2px', duration: 1.5 }, 0.95)
-        .to(q('[data-infinity-sculpture]'), { yPercent: -12, scale: 0.82, duration: 1.65 }, 1.05)
-        .to(q('[data-infinity-sculpture]'), { autoAlpha: 0, duration: 0.5 }, 2.3)
+        .fromTo(q('[data-archive-word]'), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.3 }, 2.05)
+        .to(q('[data-shared-brand]'), { x: () => brandTarget().x, y: () => brandTarget().y, scale: () => brandTarget().scale,
+          duration: 0.5, ease: 'power2.inOut' }, 2.45)
         .set(scene('hero'), { autoAlpha: 0 }, 2.85)
         .addLabel('universe', 2.95)
         // B: The quote appears behind the departing images, before they leave.
         .to(scene('vision'), { autoAlpha: 1, duration: 0.65 }, 3.45)
         .to(q('[data-archive-handoff]'), { clipPath: 'inset(0% 0% 100% 0%)', duration: 2.1 }, 3.1)
+        .to(q('[data-shared-brand]'), { autoAlpha: 0, duration: 0.3 }, 3.1)
         .set(scene('universe'), { autoAlpha: 0 }, 5.2)
         .fromTo(q('[data-vision-type]'), { scale: mobile ? 1.45 : 1.85, color: '#242023' }, { scale: 1, color: '#F2F0EC', duration: 1.65 }, 3.65)
         .fromTo(q('[data-vision-type] em'), { color: '#242023' }, { color: '#E01835', duration: 0.8 }, 4.5)
@@ -139,6 +149,7 @@ export default function CinematicExperience() {
   return <div ref={root} className="cinematic-film" data-hero-atmosphere="">
     <div className="film-stage">
       <Hero />
+      <SharedBrandMark />
       <ArchiveScene />
       <VisionAndThroughTheFrame />
       <CollaborationAndWhiteTransition />

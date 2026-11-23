@@ -8,9 +8,6 @@
 .cinematic-film[data-animated] .hero-clipped {
   clip-path:polygon(0 0,100% 0,100% calc(var(--hero-wipe-y, calc(100% + var(--hero-wipe-rise))) - var(--hero-wipe-rise)),0 var(--hero-wipe-y, calc(100% + var(--hero-wipe-rise))));
 }
-.infinity-sculpture { position:absolute; z-index:4; width:48vw; left:26%; top:19%; opacity:.52; pointer-events:none; }
-.infinity-parallax svg { display:block; width:100%; height:auto; overflow:visible; }
-.infinity-parallax { transform:translate3d(calc(var(--pointer-x) * -5px * var(--hero-parallax-strength)),calc(var(--pointer-y) * -3px * var(--hero-parallax-strength)),0); }
 .light-parallax { transform:translate3d(calc(var(--pointer-x) * -3px * var(--hero-parallax-strength)),calc(var(--pointer-y) * -2px * var(--hero-parallax-strength)),0); }
 .type-parallax { transform:translate3d(calc(var(--pointer-x) * -7px * var(--hero-parallax-strength)),calc(var(--pointer-y) * -4px * var(--hero-parallax-strength)),0); }
 .hero-scene .carried-portrait { z-index:12; top:18svh; perspective:1200px; }
@@ -28,7 +25,6 @@
   .hero-scene .hero-editorial { top:auto; bottom:15%; max-width:34vw; }
   .hero-scene [data-detail="tl"], .hero-scene [data-detail="br"] { max-width:34vw; }
   .hero-scene [data-detail="bl"] { font-size:8px; }
-  .infinity-sculpture { width:65vw; left:17.5%; top:24%; }
 }
 @media(max-width:767px) {
   .hero-scene .carried-portrait { width:100vw; height:125vw; left:0; top:15svh; }
@@ -40,7 +36,6 @@
   .hero-scene [data-detail="br"] { max-width:42vw; }
   .hero-scene [data-detail="br"] p { font-size:12px; }
   .hero-scene [data-detail="br"] a { font-size:9px; gap:8px; }
-  .infinity-sculpture { width:82vw; left:9%; top:28%; }
 }
 @media(max-height:600px) and (orientation:landscape) {
   .hero-scene .carried-portrait { width:64svh; height:80svh; left:calc(50% - 32svh); top:18svh; }
@@ -49,5 +44,5 @@
   .hero-scene [data-title-scale] { top:35%; }
 }
 @media(prefers-reduced-motion:reduce), (pointer:coarse) {
-  .portrait-parallax, .type-parallax, .light-parallax, .infinity-parallax { transform:none; }
+  .portrait-parallax, .type-parallax, .light-parallax { transform:none; }
 }

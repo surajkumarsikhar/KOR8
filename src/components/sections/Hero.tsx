@@ -6,7 +6,6 @@ import { onReady } from '@/lib/intro';
 import GrainOverlay from '@/components/ui/GrainOverlay';
 import { useHeroGateWeave } from '@/hooks/useHeroGateWeave';
 import { useHeroParallax } from '@/hooks/useHeroParallax';
-import InfinitySculpture from '@/components/ui/InfinitySculpture';
 import CarriedPortrait from './CarriedPortrait';
 import './hero-atmosphere.css';
 import './hero-depth.css';
@@ -41,7 +40,6 @@ export default function Hero() {
           gsap.set([ ...core, ...wings ], { opacity: 0 });
           gsap.set(q('[data-light-intro]'), { autoAlpha: 0 });
           gsap.set(q('[data-detail]'), { autoAlpha: 0, y: 14 });
-          gsap.set(q('[data-infinity-stroke]'), { drawSVG: '0%' });
 
           // ── Opening choreography (after the preloader) ──
           const intro = gsap.timeline({ paused: true });
@@ -50,7 +48,6 @@ export default function Hero() {
             .to(q('[data-light-intro]'), { autoAlpha: 1, duration: 2.8, ease: 'power2.out' }, 0)
             .to(core, { opacity: 1, duration: 0.8 }, 0.25)
             .to(wings, { opacity: 1, duration: 1.1, stagger: 0.12 }, 1.05)
-            .to(q('[data-infinity-stroke]'), { drawSVG: '100%', duration: 2.1, ease: 'power2.inOut' }, 0.5)
             // asymmetric peripheral timing
             .to(detail('tl'), enter, 1.25)
             .to(detail('br'), enter, 1.45)
@@ -136,7 +133,6 @@ export default function Hero() {
 
         <GrainOverlay background />
         </div>
-        <InfinitySculpture />
         <div data-hero-mask className="hero-clipped hero-foreground">
         {/* ── Composition ── */}
         <div className="relative flex h-full flex-col justify-between px-5 pb-8 pt-24 sm:px-8 md:px-12 md:pb-10 md:pt-28 lg:px-20">
@@ -163,7 +159,7 @@ export default function Hero() {
                 data-title
                 className="relative block whitespace-nowrap text-center font-monument text-[19vw] uppercase leading-[0.86] tracking-[-0.035em] text-[#F2F0EC]"
               >
-                <span data-wing>INF</span><span data-in className="text-[#e01835]">IN</span><span data-wing>ITE</span>
+                <span data-wing>INF</span><span data-in>IN</span><span data-wing>ITE</span>
               </h1>
             </div>
             </div>

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
 import { archiveProjects, archiveTiles, type ArchiveProject } from '@/content/archive';
 import './archive.css';
+import './brand-transition.css';
 import { scrollToAnchor } from '@/components/layout/SmoothScroll';
 
 type Selection = { project: ArchiveProject; bounds: DOMRect; opener: HTMLButtonElement };
@@ -19,7 +20,8 @@ function ProjectViewer({ selection, close }: { selection: Selection; close: () =
     node.showModal();
     const target = card.current!.getBoundingClientRect();
     const play = () => { void video.current?.play().catch(() => { /* Native controls remain available. */ }); };
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
       gsap.set('[data-archive-flip]', { rotationY: 180 }); play();
     } else {
       gsap.timeline()
@@ -29,13 +31,17 @@ function ProjectViewer({ selection, close }: { selection: Selection; close: () =
         .to('[data-archive-flip]', { rotationY: 180, duration: 0.85, ease: 'power2.inOut' }, 0.5)
         .call(play);
     }
-    return () => { node.close(); selection.opener.focus({ preventScroll: true }); };
+    const clip = video.current;
+    gsap.to('[data-project-crimson]', { opacity: 0, duration: reduced ? 0 : 0.35 });
+    gsap.fromTo('.archive-front img', { filter: 'saturate(.25) brightness(1.08) contrast(1.12)' },
+      { filter: 'none', duration: reduced ? 0 : 0.35 });
+    return () => { clip?.pause(); node.close(); selection.opener.focus({ preventScroll: true }); };
   }, { scope: dialog });
   return <dialog ref={dialog} className="archive-dialog" aria-labelledby="archive-project-title"
     onCancel={event => { event.preventDefault(); close(); }} onClick={event => { if (event.target === event.currentTarget) close(); }}>
     <button className="archive-close" autoFocus onClick={close}>Close project</button>
     <div ref={card} className="archive-presentation"><div data-archive-flip className="archive-flip">
-      <div className="archive-face archive-front" aria-hidden="true"><img src={project.src} alt="" /></div>
+      <div className="archive-face archive-front" aria-hidden="true"><img src={project.src} alt="" /><span data-project-crimson className="project-crimson" /></div>
       <div className="archive-face archive-back">
         {project.video ? <video ref={video} src={project.video} poster={project.src} muted playsInline loop controls preload="metadata" /> : <img src={project.src} alt={project.alt} />}
         <div className="archive-project-copy"><p>{project.note}</p><h2 id="archive-project-title">{project.title}</h2></div>
@@ -52,11 +58,14 @@ export default function InfiniteArchive({ embedded = false }: { embedded?: boole
   const suppressClick = useRef(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [exploring, setExploring] = useState(false);
+  const [acknowledged, setAcknowledged] = useState<string | null>(null);
+  const activationTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(activationTimer.current), []);
   useEffect(() => {
     if (!embedded) return;
     const scene = root.current!.closest<HTMLElement>('[data-scene]')!;
     const observer = new MutationObserver(() => {
-      if (scene.inert) { setExploring(false); setSelection(null); }
+      if (scene.inert) { clearTimeout(activationTimer.current); setAcknowledged(null); setExploring(false); setSelection(null); }
     });
     observer.observe(scene, { attributes: true, attributeFilter: ['inert'] });
     return () => observer.disconnect();
@@ -90,6 +99,7 @@ export default function InfiniteArchive({ embedded = false }: { embedded?: boole
     return () => { observer.disconnect(); node.removeEventListener('wheel', wheel); };
   }, [embedded, exploring, selection]);
   const continueTo = (id: string) => {
+    clearTimeout(activationTimer.current); setAcknowledged(null);
     setExploring(false); setSelection(null); scrollToAnchor(id);
   };
   return <section ref={root} className={`infinite-archive${embedded ? ' archive-embedded' : ''}`} data-exploring={exploring || undefined} data-lenis-prevent={(!embedded || exploring || selection) ? '' : undefined} aria-label="Infinite photographic archive"
@@ -124,6 +134,7 @@ export default function InfiniteArchive({ embedded = false }: { embedded?: boole
         {archiveTiles.map((tile, index) => {
           const project = archiveProjects[tile.project];
           return <button key={index} type="button" className="archive-tile" tabIndex={copyIndex === 4 ? 0 : -1}
+            data-activating={acknowledged === `${copyIndex}-${index}` || undefined}
             aria-label={`Open ${project.title}${project.video ? ', video' : ''}`} data-project={project.id}
             style={{ left: `calc(var(--archive-col) * ${tile.x})`, top: `calc(var(--archive-row) * ${tile.y})`, width: `calc(var(--archive-col) * ${tile.w} + 1px)`, height: `calc(var(--archive-row) * ${tile.h} + 1px)` }}
             onFocus={event => {
@@ -138,13 +149,22 @@ export default function InfiniteArchive({ embedded = false }: { embedded?: boole
             }}
             onClick={event => {
               if (suppressClick.current) { suppressClick.current = false; return; }
-              setSelection({ project, bounds: event.currentTarget.getBoundingClientRect(), opener: event.currentTarget });
-            }}><img src={project.src} alt="" draggable={false} /></button>;
+              const opener = event.currentTarget;
+              clearTimeout(activationTimer.current);
+              setAcknowledged(`${copyIndex}-${index}`);
+              activationTimer.current = setTimeout(() => {
+                setSelection({ project, bounds: opener.getBoundingClientRect(), opener });
+                setAcknowledged(null);
+              }, 160);
+            }}><img src={project.src} alt="" draggable={false} /><span className="tile-crimson" aria-hidden="true" /><span className="tile-caption" aria-hidden="true">{project.title}</span></button>;
         })}
       </div>)}
     </div>
     <div className="archive-atmosphere" aria-hidden="true" />
-    <header className="archive-heading"><p>KOR8 / Selected studies</p>{embedded ? <h2>Infinite archive</h2> : <h1>Infinite archive</h1>}</header>
+    <header className="archive-heading"><p>KOR8 / Selected studies</p><div className="archive-title-row">
+      <span data-brand-destination={embedded ? '' : undefined} className={`archive-brand-slot${embedded ? ' embedded-brand-slot' : ''}`} aria-hidden="true"><img src="/images/brand-symbol.svg" alt="" /></span>
+      {embedded ? <h2 data-archive-word>ARCHIVE</h2> : <h1>ARCHIVE</h1>}
+    </div></header>
     <footer className="archive-controls">
       {embedded ? <><button onClick={() => continueTo('top')}>Back to hero</button>
         <button aria-pressed={exploring} onClick={() => { if (!exploring) scrollToAnchor('universe', true); setExploring(!exploring); }}>{exploring ? 'Finish exploring' : 'Explore wall'}</button>

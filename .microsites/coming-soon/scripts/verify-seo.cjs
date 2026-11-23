@@ -1,0 +1,44 @@
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+(async () => {
+ const browser = await chromium.launch({executablePath:process.env.BROWSER_PATH,headless:true});
+ try {
+  const page = await browser.newPage({javaScriptEnabled:false,viewport:{width:1440,height:900}});
+  const response = await page.goto('http://127.0.0.1:3001');
+  assert.equal(response.status(),200);
+  assert.equal(await page.title(),'KOR8 | Film Production & Creative Studio');
+  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://kor8.in/');
+  assert.equal(await page.locator('html').getAttribute('lang'),'en');
+  assert.equal(await page.locator('h1').count(),1);
+  assert.equal(await page.locator('main').count(),1);
+  assert.match(await page.locator('meta[name=robots]').getAttribute('content'),/index, follow/);
+  assert(!/noindex|noarchive/.test(await page.locator('head').innerHTML()));
+  assert.equal(await page.locator('meta[name=keywords]').count(),0);
+  assert.match(await page.locator('.invitation-description').innerText(),/independent creative production studio/);
+  const json = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+  assert.equal(json['@context'],'https://schema.org');assert.equal(json['@type'],'Organization');
+  assert.equal(json.email,'business@kor8.in');assert.equal(json.url,'https://kor8.in/');
+  assert.deepEqual(Object.keys(json).sort(),['@context','@type','@id','name','url','logo','email','description'].sort());
+  for(const attr of ['og:image','og:url','og:title','og:description']) assert(await page.locator(`meta[property="${attr}"]`).getAttribute('content'));
+  assert.equal(await page.locator('meta[name="twitter:card"]').getAttribute('content'),'summary_large_image');
+  const sitemap = await page.request.get('http://127.0.0.1:3001/sitemap.xml');assert.equal(sitemap.status(),200);
+  const xml = await sitemap.text();
+  assert.deepEqual(await page.evaluate(xml=>{const d=new DOMParser().parseFromString(xml,'application/xml');return {errors:d.querySelectorAll('parsererror').length,urls:[...d.querySelectorAll('loc')].map(x=>x.textContent),lastmod:d.querySelector('lastmod')?.textContent};},xml),{errors:0,urls:['https://kor8.in/'],lastmod:'2026-11-23'});
+  const robots=await page.request.get('http://127.0.0.1:3001/robots.txt');assert.equal(robots.status(),200);assert.match(await robots.text(),/Allow: \/\s/);assert.match(await robots.text(),/Sitemap: https:\/\/kor8.in\/sitemap.xml/);
+  for(const asset of ['/og-image.png','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/images/brand-symbol.svg']) assert.equal((await page.request.get('http://127.0.0.1:3001'+asset)).status(),200);
+  assert.deepEqual(await page.evaluate(async()=>{const i=new Image();i.src='/og-image.png';await i.decode();return [i.naturalWidth,i.naturalHeight];}),[1200,630]);
+  const badLinks=await page.locator('a[href^="#"]').evaluateAll(links=>links.map(a=>a.getAttribute('href')).filter(h=>h!=='#'&&!document.getElementById(h.slice(1))));assert.deepEqual(badLinks,[]);
+  for(const scene of await page.locator('[data-scene]').all()) assert.equal(await scene.evaluate(e=>getComputedStyle(e).visibility),'visible');
+  assert.equal(await page.locator('.stage').evaluate(e=>getComputedStyle(e).position),'relative');
+  assert(!(await page.locator('body').innerText()).includes('\u2014'));
+  assert(!(await page.locator('head').innerHTML()).includes('\u2014'));
+  await page.locator('#invitation').scrollIntoViewIfNeeded();await page.screenshot({path:'artifacts/no-js-invitation.png'});
+  const failedScripts = await browser.newPage();
+  await failedScripts.route('**/*.js', route=>route.abort());
+  await failedScripts.goto('http://127.0.0.1:3001');
+  assert.equal(await failedScripts.locator('.stage').evaluate(e=>getComputedStyle(e).position),'relative');
+  for(const scene of await failedScripts.locator('[data-scene]').all()) assert.equal(await scene.evaluate(e=>getComputedStyle(e).visibility),'visible');
+  await failedScripts.close();
+  console.log('SEO passed: static HTML, canonical, metadata, JSON-LD, XML, robots, assets, links, headings, no-JS fallback and em dash audit.');
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1)});
